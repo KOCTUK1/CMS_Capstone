@@ -10,6 +10,17 @@ Usage:
     python rollins_room_scraper.py --start 2024-01-01 --end 2024-12-31
     python rollins_room_scraper.py --output my_data.csv
 
+HOW TO OPERATE**********************************************************************************************
+# Install dependencies
+pip install requests beautifulsoup4 pandas numpy
+
+# Scrape with your Rollins login (most likely required)
+python rollins_room_scraper.py --username yournetid --password yourpass --days 90 --output reservations.csv
+
+# Or a specific date range
+python rollins_room_scraper.py --username yournetid --password yourpass --start 2024-09-01 --end 2025-05-01
+************************************************************************************************************
+
 Output:
     CSV file with columns:
         date, day_of_week, start_time, end_time, duration_hours,
