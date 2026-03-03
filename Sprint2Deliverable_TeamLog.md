@@ -6,4 +6,9 @@ Diego Journal
 
 Mauricio Journal
 
+- Feb 19th - setup scykit in django in VSCode
+- Feb 24th - Looked at scykit tutorial on youtube
+    - only really got a surface level understanding of functionality
+- Feb 26th - Made a program to analyze the data from the data scrapper with help of claude.
+
 Jacee Journal
