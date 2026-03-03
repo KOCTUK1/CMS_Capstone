@@ -14,4 +14,7 @@ Mauricio Journal
     - only really got a surface level understanding of functionality
 - Feb 26th - Made a program to analyze the data from the data scrapper with help of claude.
 
-Jacee Journal
+Jaice Journal
+- Feb 5-Feb 15 - Downloaded Python, Django, Scikit, and Pandas and made sure they worked
+- Feb 16-Feb 22 - Watched tutorials for Django, Scikit, and Pandas to understand them
+- Feb 23-Mar 1 - Continued learning Django, Scikit, and Pandas; Tested team's scraper
