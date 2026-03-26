@@ -6,19 +6,10 @@ Usage:
     python room_predictor.py --train
  
     # Predict a single slot by the hour
-    python room_predictor.py --predict \
-        --building "Bush Science Center" \
-        --room "Room 212" \
-        --day Monday \
-        --month 10 \
-        --hour 14
+    python room_predictor.py --predict --building "Bush Science Center" --room "Room 212" --day Monday --month 10 --hour 14
  
     # Show a full day prediction for a room
-    python room_predictor.py --forecast \
-        --building "Olin Library" \
-        --room "Room 230 - Library Meeting Room" \
-        --day Wednesday \
-        --month 3
+    python room_predictor.py --forecast --building "Olin Library" --room "Room 230 - Library Meeting Room" --day Wednesday --month 3
 """
 
 # ---------------------------------------------------------------------------
