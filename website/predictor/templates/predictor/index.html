@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Rollins Room Predictor</title>
+  </head>
+  <body>
+    <!-- Show list of Rollins buildings -->
+    {% if building_list %}
+        <ul>
+        {% for building in building_list %}
+        <li><a href="{% url 'predictor:building_detail' building.short_building_name %}">{{ building.full_building_name }}</a></li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Can't access list of buildings.</p>
+    {% endif %}
+  </body>
+</html>
