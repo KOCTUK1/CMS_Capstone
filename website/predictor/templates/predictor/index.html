@@ -148,5 +148,42 @@
       {% endif %}
 
     </div>
+
+    <!-- JavaScript: filter rooms when building changes -->
+    <script>
+      // Django passes the building→room mapping as JSON
+      const buildingRoomMap = {{ building_room_map_json|safe }};
+
+      const buildingSelect = document.getElementById("id_building");
+      const roomSelect = document.getElementById("id_room");
+
+      // Remember which room was selected (so it stays selected after a page reload)
+      const currentRoom = roomSelect.value;
+
+      function updateRooms() {
+        const selectedBuilding = buildingSelect.value;
+        const rooms = buildingRoomMap[selectedBuilding] || [];
+
+        // Clear existing options
+        roomSelect.innerHTML = "";
+
+        // Add new options
+        rooms.forEach(function(room) {
+          const option = document.createElement("option");
+          option.value = room;
+          option.textContent = room;
+          if (room === currentRoom) {
+            option.selected = true;
+          }
+          roomSelect.appendChild(option);
+        });
+      }
+
+      // Filter rooms when the building changes
+      buildingSelect.addEventListener("change", updateRooms);
+
+      // Also filter on page load so the room dropdown matches the first building
+      updateRooms();
+    </script>
   </body>
 </html>

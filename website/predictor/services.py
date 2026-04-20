@@ -97,3 +97,13 @@ def get_known_rooms() -> list[str]:
     """Return the list of room names the model was trained on."""
     _, encoders = _load_model_and_encoders()
     return list(encoders["room"].classes_)
+
+def get_building_room_mapping() -> dict[str, list[str]]:
+    """Return a dict mapping each building to its list of rooms."""
+    import pandas as pd
+    data_path = os.path.join(ML_DIR, "cleaned_data.csv")
+    df = pd.read_csv(data_path)
+    mapping = {}
+    for building, group in df.groupby("building"):
+        mapping[building] = sorted(group["room"].unique().tolist())
+    return mapping
