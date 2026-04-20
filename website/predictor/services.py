@@ -48,16 +48,17 @@ def get_forecast(building_full_name: str, room_full_name: str,
     """
     Return a list of hourly predictions for a room on a given day/month.
 
-    Each item in the list looks like:
-        {
-            "hour": 9,
-            "hour_display": "9:00 AM",
-            "reserved": True,
-            "probability": 0.73,
-            "pct": 73,
-        }
+    Raises ValueError if building or room is missing/empty (the model has no
+    sensible default and we must not silently pick one). Unknown building/room
+    names also raise ValueError via the underlying encoder check.
     """
     from predictor.ml.room_predictor import predict_slot
+
+    # Hard contract: BOTH building and room are required. No defaults.
+    if not building_full_name or not str(building_full_name).strip():
+        raise ValueError("building is required for prediction")
+    if not room_full_name or not str(room_full_name).strip():
+        raise ValueError("room is required for prediction")
 
     model, encoders = _load_model_and_encoders()
     results = []
@@ -97,6 +98,7 @@ def get_known_rooms() -> list[str]:
     """Return the list of room names the model was trained on."""
     _, encoders = _load_model_and_encoders()
     return list(encoders["room"].classes_)
+
 
 def get_building_room_mapping() -> dict[str, list[str]]:
     """Return a dict mapping each building to its list of rooms."""

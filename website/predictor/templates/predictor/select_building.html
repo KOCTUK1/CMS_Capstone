@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Rollins Room Predictor</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+      /* Base */
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #f5f7fa; color: #1e293b; padding: 2rem;
+      }
+
+      /* Card */
+      .card {
+        max-width: 700px; margin: 0 auto; background: #fff;
+        border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.1);
+        padding: 2rem;
+      }
+      .card h1 { font-size: 1.5rem; margin-bottom: .25rem; font-weight: 700; }
+      .card .subtitle { color: #64748b; margin-bottom: 1.5rem; }
+
+      /* Building list */
+      .building-list { list-style: none; display: grid; gap: .75rem; }
+      .building-list a {
+        display: block; padding: 1rem 1.25rem;
+        background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+        color: #1e293b; text-decoration: none; font-weight: 600;
+        transition: background .15s, border-color .15s;
+      }
+      .building-list a:hover {
+        background: #eff6ff; border-color: #93c5fd; color: #1d4ed8;
+      }
+      .building-list a .arrow { float: right; color: #94a3b8; }
+
+      /* Messages (redirect errors from Page 2) */
+      .messages { margin-bottom: 1rem; }
+      .messages .msg {
+        background: #fef2f2; color: #991b1b; padding: .75rem 1rem;
+        border-radius: 8px; font-size: .9rem;
+      }
+
+      /* Empty state */
+      .empty {
+        padding: 1rem; background: #fef9c3; color: #854d0e;
+        border-radius: 8px; font-size: .9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Rollins Room Predictor</h1>
+      <p class="subtitle">Select a building to get started.</p>
+
+      {% if messages %}
+        <div class="messages">
+          {% for message in messages %}
+            <div class="msg">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% if buildings %}
+        <ul class="building-list">
+          {% for b in buildings %}
+            <li>
+              <a href="{% url 'predictor:forecast' b %}">
+                {{ b }}<span class="arrow">&rsaquo;</span>
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="empty">
+          No buildings are available. The ML model may not be loaded — check
+          that <code>predictor/ml/room_model.joblib</code> and
+          <code>label_encoders.joblib</code> exist.
+        </p>
+      {% endif %}
+    </div>
+  </body>
+</html>

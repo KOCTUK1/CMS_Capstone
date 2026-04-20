@@ -3,14 +3,21 @@ predictor/forms.py
 """
 
 from django import forms
-from .services import DAY_CHOICES, MONTH_CHOICES, get_known_buildings, get_known_rooms
+from .services import (
+    DAY_CHOICES,
+    MONTH_CHOICES,
+    get_building_room_mapping,
+    get_known_buildings,
+)
 
 
 class ForecastForm(forms.Form):
-    building = forms.ChoiceField(
-        label="Building",
-        widget=forms.Select(attrs={"class": "form-select"}),
-    )
+    """
+    Page 2 form. The building is fixed by the URL, so only room/day/month are
+    user-chosen here. Room choices are filtered to the rooms that belong to the
+    given building according to the ML training data.
+    """
+
     room = forms.ChoiceField(
         label="Room",
         widget=forms.Select(attrs={"class": "form-select"}),
@@ -26,11 +33,21 @@ class ForecastForm(forms.Form):
         widget=forms.Select(attrs={"class": "form-select"}),
     )
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, building: str = "", **kwargs):
         super().__init__(*args, **kwargs)
-        # Pull buildings/rooms from the ML model itself so the dropdowns
-        # only show values the model can actually predict for.
-        buildings = sorted(get_known_buildings())
-        rooms = sorted(get_known_rooms())
-        self.fields["building"].choices = [(b, b) for b in buildings]
+        self.building = building
+
+        mapping = get_building_room_mapping()
+        rooms = mapping.get(building, [])
         self.fields["room"].choices = [(r, r) for r in rooms]
+
+    def clean_room(self):
+        room = self.cleaned_data.get("room", "").strip()
+        if not room:
+            raise forms.ValidationError("Please select a room.")
+        return room
+
+
+def list_buildings() -> list[str]:
+    """Convenience wrapper used by the Page 1 view."""
+    return sorted(get_known_buildings())

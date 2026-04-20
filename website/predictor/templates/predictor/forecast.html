@@ -2,7 +2,7 @@
 <html lang="en-US">
   <head>
     <meta charset="utf-8" />
-    <title>Rollins Room Predictor</title>
+    <title>Rollins Room Predictor — {{ building }}</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,13 +25,31 @@
       .card h1 { font-size: 1.5rem; margin-bottom: .25rem; font-weight: 700; }
       .card .subtitle { color: #64748b; margin-bottom: 1.5rem; }
 
+      /* Back link */
+      .back-link {
+        display: inline-block; margin-bottom: 1rem;
+        color: #2563eb; text-decoration: none; font-size: .9rem; font-weight: 600;
+      }
+      .back-link:hover { text-decoration: underline; }
+
+      /* Confirmed-building pill */
+      .building-pill {
+        display: inline-block; padding: .25rem .75rem;
+        background: #eff6ff; color: #1d4ed8; border-radius: 999px;
+        font-size: .85rem; font-weight: 600; margin-bottom: 1.25rem;
+      }
+
       /* Form */
       .forecast-form { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
       .forecast-form .field { display: flex; flex-direction: column; }
+      .forecast-form .field.full { grid-column: 1 / -1; }
       .forecast-form label { font-size: .85rem; font-weight: 600; margin-bottom: .25rem; }
       .form-select {
         padding: .45rem .75rem; border: 1px solid #cbd5e1; border-radius: 6px;
         font-size: .95rem; background: #fff; font-family: inherit;
+      }
+      .field-error {
+        color: #991b1b; font-size: .8rem; margin-top: .25rem;
       }
       .btn {
         grid-column: 1 / -1;
@@ -70,36 +88,54 @@
       /* Error */
       .error { background: #fef2f2; color: #991b1b; padding: 1rem;
                border-radius: 8px; margin-top: 1rem; }
+
+      /* Empty rooms */
+      .empty {
+        padding: 1rem; background: #fef9c3; color: #854d0e;
+        border-radius: 8px; font-size: .9rem;
+      }
     </style>
   </head>
   <body>
     <div class="card">
 
+      <a href="{% url 'predictor:select_building' %}" class="back-link">&lsaquo; Back to buildings</a>
+
       <h1>Rollins Room Predictor</h1>
-      <p class="subtitle">Pick a building, room, day, and month to see when it's likely to be available.</p>
+      <p class="subtitle">Pick a room, day, and month to see when it's likely to be available.</p>
 
-      <!-- Forecast form -->
-      <form method="get" class="forecast-form">
-        <div class="field">
-          <label for="id_building">{{ form.building.label }}</label>
-          {{ form.building }}
-        </div>
-        <div class="field">
-          <label for="id_room">{{ form.room.label }}</label>
-          {{ form.room }}
-        </div>
-        <div class="field">
-          <label for="id_day">{{ form.day.label }}</label>
-          {{ form.day }}
-        </div>
-        <div class="field">
-          <label for="id_month">{{ form.month.label }}</label>
-          {{ form.month }}
-        </div>
-        <button type="submit" class="btn">Predict</button>
-      </form>
+      <!-- Confirm the building on screen -->
+      <div class="building-pill">Building: {{ building }}</div>
 
-      <!-- Error -->
+      {% if rooms %}
+        <!-- Forecast form (GET; same URL renders the result below) -->
+        <form method="get" class="forecast-form">
+          <div class="field">
+            <label for="id_room">{{ form.room.label }}</label>
+            {{ form.room }}
+            {% for err in form.room.errors %}
+              <div class="field-error">{{ err }}</div>
+            {% endfor %}
+          </div>
+          <div class="field">
+            <label for="id_day">{{ form.day.label }}</label>
+            {{ form.day }}
+          </div>
+          <div class="field full">
+            <label for="id_month">{{ form.month.label }}</label>
+            {{ form.month }}
+          </div>
+          <button type="submit" class="btn">Predict</button>
+        </form>
+      {% else %}
+        <div class="empty">
+          No rooms are available for <strong>{{ building }}</strong>. This
+          shouldn't happen — check that the ML training data covers this
+          building.
+        </div>
+      {% endif %}
+
+      <!-- Error from the predictor (e.g. unknown room/building) -->
       {% if error_message %}
         <div class="error">
           <strong>Prediction not available:</strong> {{ error_message }}
@@ -148,42 +184,5 @@
       {% endif %}
 
     </div>
-
-    <!-- JavaScript: filter rooms when building changes -->
-    <script>
-      // Django passes the building→room mapping as JSON
-      const buildingRoomMap = {{ building_room_map_json|safe }};
-
-      const buildingSelect = document.getElementById("id_building");
-      const roomSelect = document.getElementById("id_room");
-
-      // Remember which room was selected (so it stays selected after a page reload)
-      const currentRoom = roomSelect.value;
-
-      function updateRooms() {
-        const selectedBuilding = buildingSelect.value;
-        const rooms = buildingRoomMap[selectedBuilding] || [];
-
-        // Clear existing options
-        roomSelect.innerHTML = "";
-
-        // Add new options
-        rooms.forEach(function(room) {
-          const option = document.createElement("option");
-          option.value = room;
-          option.textContent = room;
-          if (room === currentRoom) {
-            option.selected = true;
-          }
-          roomSelect.appendChild(option);
-        });
-      }
-
-      // Filter rooms when the building changes
-      buildingSelect.addEventListener("change", updateRooms);
-
-      // Also filter on page load so the room dropdown matches the first building
-      updateRooms();
-    </script>
   </body>
 </html>
