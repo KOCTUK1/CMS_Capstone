@@ -3,17 +3,150 @@
   <head>
     <meta charset="utf-8" />
     <title>Rollins Room Predictor</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+      /* Base */
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #f5f7fa; color: #1e293b; padding: 2rem;
+      }
+
+      /* Card */
+      .card {
+        max-width: 700px; margin: 0 auto; background: #fff;
+        border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.1);
+        padding: 2rem;
+      }
+      .card h1 { font-size: 1.5rem; margin-bottom: .25rem; font-weight: 700; }
+      .card .subtitle { color: #64748b; margin-bottom: 1.5rem; }
+
+      /* Form */
+      .forecast-form { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+      .forecast-form .field { display: flex; flex-direction: column; }
+      .forecast-form label { font-size: .85rem; font-weight: 600; margin-bottom: .25rem; }
+      .form-select {
+        padding: .45rem .75rem; border: 1px solid #cbd5e1; border-radius: 6px;
+        font-size: .95rem; background: #fff; font-family: inherit;
+      }
+      .btn {
+        grid-column: 1 / -1;
+        padding: .6rem 1.25rem; border: none; border-radius: 6px;
+        background: #2563eb; color: #fff; font-size: .95rem; cursor: pointer;
+        font-weight: 600; font-family: inherit; margin-top: .25rem;
+      }
+      .btn:hover { background: #1d4ed8; }
+
+      /* Results table */
+      .results-heading { margin: 1.5rem 0 .75rem; font-size: 1.1rem; font-weight: 600; }
+      table { width: 100%; border-collapse: collapse; }
+      th, td { text-align: left; padding: .6rem .75rem; }
+      th { background: #f1f5f9; font-size: .8rem; text-transform: uppercase;
+           letter-spacing: .05em; color: #64748b; font-weight: 600; }
+      tr:not(:last-child) td { border-bottom: 1px solid #e2e8f0; }
+
+      /* Probability bar */
+      .bar-bg {
+        width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px;
+        overflow: hidden;
+      }
+      .bar-fill { height: 100%; border-radius: 4px; }
+      .bar-fill.low  { background: #22c55e; }
+      .bar-fill.mid  { background: #eab308; }
+      .bar-fill.high { background: #ef4444; }
+
+      /* Status badge */
+      .badge {
+        display: inline-block; padding: .15rem .6rem; border-radius: 999px;
+        font-size: .8rem; font-weight: 600;
+      }
+      .badge.free     { background: #dcfce7; color: #166534; }
+      .badge.reserved { background: #fee2e2; color: #991b1b; }
+
+      /* Error */
+      .error { background: #fef2f2; color: #991b1b; padding: 1rem;
+               border-radius: 8px; margin-top: 1rem; }
+    </style>
   </head>
   <body>
-    <!-- Show list of Rollins buildings -->
-    {% if building_list %}
-        <ul>
-        {% for building in building_list %}
-        <li><a href="{% url 'predictor:building_detail' building.short_building_name %}">{{ building.full_building_name }}</a></li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>Can't access list of buildings.</p>
-    {% endif %}
+    <div class="card">
+
+      <h1>Rollins Room Predictor</h1>
+      <p class="subtitle">Pick a building, room, day, and month to see when it's likely to be available.</p>
+
+      <!-- Forecast form -->
+      <form method="get" class="forecast-form">
+        <div class="field">
+          <label for="id_building">{{ form.building.label }}</label>
+          {{ form.building }}
+        </div>
+        <div class="field">
+          <label for="id_room">{{ form.room.label }}</label>
+          {{ form.room }}
+        </div>
+        <div class="field">
+          <label for="id_day">{{ form.day.label }}</label>
+          {{ form.day }}
+        </div>
+        <div class="field">
+          <label for="id_month">{{ form.month.label }}</label>
+          {{ form.month }}
+        </div>
+        <button type="submit" class="btn">Predict</button>
+      </form>
+
+      <!-- Error -->
+      {% if error_message %}
+        <div class="error">
+          <strong>Prediction not available:</strong> {{ error_message }}
+        </div>
+      {% endif %}
+
+      <!-- Results -->
+      {% if forecast %}
+        <h2 class="results-heading">
+          {{ selected.room }} — {{ selected.building }}<br>
+          <span style="font-weight: 400; color: #64748b; font-size: .9rem;">
+            {{ selected.day }}, {{ selected.month }}
+          </span>
+        </h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Status</th>
+              <th>Likelihood Reserved</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for slot in forecast %}
+            <tr>
+              <td>{{ slot.hour_display }}</td>
+              <td>
+                {% if slot.reserved %}
+                  <span class="badge reserved">Reserved</span>
+                {% else %}
+                  <span class="badge free">Free</span>
+                {% endif %}
+              </td>
+              <td>{{ slot.pct }}%</td>
+              <td style="width:120px">
+                <div class="bar-bg">
+                  <div class="bar-fill {% if slot.pct < 30 %}low{% elif slot.pct < 60 %}mid{% else %}high{% endif %}"
+                       style="width: {{ slot.pct }}%"></div>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% endif %}
+
+    </div>
   </body>
 </html>
